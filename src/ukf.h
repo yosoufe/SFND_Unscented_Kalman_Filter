@@ -106,6 +106,7 @@ class UKF {
   void PredictRadarMeasurement(Eigen::VectorXd &z_out, Eigen::MatrixXd &S_out, Eigen::MatrixXd &Zsig);
   void PredictLaserMeasurement(Eigen::VectorXd &z_out, Eigen::MatrixXd &S_out, Eigen::MatrixXd &Zsig);
   void UpdateState(Eigen::MatrixXd &Zsig, Eigen::VectorXd &z_pred, Eigen::MatrixXd &S, Eigen::VectorXd &z, int n_z);
+  void normalizeAngle(double &angle);
 };
 
 #endif  // UKF_H

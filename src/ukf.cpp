@@ -23,10 +23,10 @@ UKF::UKF() {
   P_.fill(0);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 6.0;
+  std_a_ = 2.0;
 
   // Process noise standard deviation yaw acXsig_pred_celeration in rad/s^2
-  std_yawdd_ = 0.1;
+  std_yawdd_ = 0.5;
   
   /**
    * DO NOT MODIFY measurement noise values below.
@@ -65,12 +65,10 @@ UKF::UKF() {
 
   // set weights
   weights_ = VectorXd(2 * n_aug_ + 1);
-  double weight_0 = lambda_ / (lambda_ + n_aug_);
-  weights_(0) = weight_0;
+  weights_(0) = lambda_ / (lambda_ + n_aug_);
   for (int i = 1; i < 2 * n_aug_ + 1; i++)
   { //2n+1 weights
-    double weight = 0.5 / (n_aug_ + lambda_);
-    weights_(i) = weight;
+    weights_(i) = 0.5 / (n_aug_ + lambda_);
   }
   pre_time_ = 0;
 }
@@ -113,8 +111,8 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     }
 
     P_ = MatrixXd::Identity(n_x_, n_x_);
-    P_(2, 2) = 2;
-    P_(3, 3) = 2;
+    P_(2, 2) = std_a_ * std_a_;
+    P_(3, 3) = std_yawdd_ * std_yawdd_;
 
     is_initialized_ = true;
     return;
@@ -268,14 +266,7 @@ void UKF::UpdateState(Eigen::MatrixXd &Zsig, Eigen::VectorXd &z_pred, Eigen::Mat
     if (n_z == 3)
     { // Radar
       //angle normalization
-      while (temp(1) > M_PI)
-      {
-        temp(1) -= 2. * M_PI;
-      }
-      while (temp(1) < -M_PI)
-      {
-        temp(1) += 2. * M_PI;
-      }
+      normalizeAngle(temp(1));
     }
     Tc = Tc + weights_(i) * (Xsig_pred_.col(i) - x_) * temp.transpose();
   }
@@ -314,14 +305,7 @@ void UKF::PredictRadarMeasurement(Eigen::VectorXd &z_out, Eigen::MatrixXd &S_out
   {
     VectorXd temp = Zsig.col(i) - z_pred;
     //angle normalization
-    while (temp(1) > M_PI/2.0)
-    {
-      temp(1) -= 2. * M_PI;
-    }
-    while (temp(1) < -M_PI / 2.0)
-    {
-      temp(1) += 2. * M_PI;
-    }
+    normalizeAngle(temp(1));
     S = S + (weights_(i) * temp) * temp.transpose();
   }
   S = S + R;
@@ -359,4 +343,16 @@ void UKF::PredictLaserMeasurement(Eigen::VectorXd &z_out, Eigen::MatrixXd &S_out
   S = S + R;
   z_out = z_pred;
   S_out = S;
+}
+
+void UKF::normalizeAngle(double &angle)
+{
+  while (angle > M_PI)
+  {
+    angle -= 2. * M_PI;
+  }
+  while (angle < -M_PI)
+  {
+    angle += 2. * M_PI;
+  }
 }
