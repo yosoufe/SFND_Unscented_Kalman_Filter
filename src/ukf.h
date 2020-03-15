@@ -60,8 +60,12 @@ class UKF {
   // predicted sigma points matrix
   Eigen::MatrixXd Xsig_pred_;
 
+  ///* augmented sigma points
+  Eigen::MatrixXd Xsig_;
+
   // time when the state is true, in us
   long long time_us_;
+  long long pre_time_;
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
   double std_a_;
@@ -95,6 +99,13 @@ class UKF {
 
   // Sigma point spreading parameter
   double lambda_;
+
+  void AugmentedSigmaPoints(void);
+  void SigmaPointPrediction(double delta_t);
+  void PredictMeanAndCovariance(void);
+  void PredictRadarMeasurement(Eigen::VectorXd &z_out, Eigen::MatrixXd &S_out, Eigen::MatrixXd &Zsig);
+  void PredictLaserMeasurement(Eigen::VectorXd &z_out, Eigen::MatrixXd &S_out, Eigen::MatrixXd &Zsig);
+  void UpdateState(Eigen::MatrixXd &Zsig, Eigen::VectorXd &z_pred, Eigen::MatrixXd &S, Eigen::VectorXd &z, int n_z);
 };
 
 #endif  // UKF_H
